@@ -14,6 +14,13 @@ interface Person {
     name: string;
     surname: string;
 }
+
+interface Data {
+  id: number;
+  col1: string;
+  col2: string;
+  col3: Date;
+}
   
 const getPeople = (): Person[] => [
   { id: 1, name: "", surname: "" },
@@ -22,58 +29,49 @@ const getPeople = (): Person[] => [
   { id: 4, name: "", surname: "" }
 ];
 
+const getData = (): Data[] => [
+  { id: 1, col1: "", col2: "", col3: new Date() },
+  { id: 2, col1: "", col2: "", col3: new Date() },
+  { id: 3, col1: "", col2: "", col3: new Date() },
+  { id: 4, col1: "", col2: "", col3: new Date() },
+  { id: 5, col1: "", col2: "", col3: new Date() },
+]
+
 const getHighlight = (): Highlight[] => [
   { columnId: "name", rowId: 0, borderColor: "transparent" },
   { columnId: "name", rowId: 1, borderColor: "transparent" },
   { columnId: "name", rowId: 2, borderColor: "transparent" },
   { columnId: "name", rowId: 3, borderColor: "transparent" },
 ]
-
-const getColumns = (): Column[] => [
-  { columnId: "name", width: 150, resizable: true, reorderable: true },
-  { columnId: "surname", width: 150, resizable: true, reorderable: true }
+const getDataColumns = (): Column[] => [
+  { columnId: "col1", width: 150, resizable: true, reorderable: true },
+  { columnId: "col2", width: 150, resizable: true, reorderable: true },
+  { columnId: "col3", width: 150, resizable: true, reorderable: true }
 ];
 
 // header defined here
 const headerRow: Row = {
   rowId: "header",
   cells: [
-    { type: "header", text: "Name" },
-    { type: "header", text: "Surname" }
+    { type: "header", text: "Col1" },
+    { type: "header", text: "Col2" },
+    { type: "header", text: "Col3" },
+    //{ type: "header", text: "Col4" }
   ]
 };
 
-const getRows = (people: Person[]): Row[] => [
+const getDataRows = (data: Data[]): Row[] => [
   headerRow,
-  ...people.map<Row>((person, idx) => ({
+  ...data.map<Row>((data, idx) => ({
     rowId: idx,
     reorderable: true,
     cells: [
-      { type: "text", text: person.name },
-      { type: "text", text: person.surname }
+      { type: "text", text: data.col1 },
+      { type: "text", text: data.col2 },
+      { type: "date", text: data.col3 },
     ]
   }))
 ];
-
-// const getRows = (people: Person[], columnsOrder: ColumnId[]): Row[] => {
-//   return [
-//     {
-//       rowId: "header",
-//       cells: [
-//         { type: "header", text: columnMap[columnsOrder[0]] },
-//         { type: "header", text: columnMap[columnsOrder[1]] }
-//       ]
-//     },
-//     ...people.map<Row>((person) => ({ //removed idx as param
-//       rowId: person.id,
-//       reorderable: true,
-//       cells: [
-//         { type: "text", text: person[columnsOrder[0]] }, // `person['name']` / `person['surname']`
-//         { type: "text", text: person[columnsOrder[1]] } // `person['surname']` / `person['name']`
-//       ]
-//     }))
-//   ]
-// };
 
 const applyHighlights = (
   changes: Highlight[],
@@ -82,55 +80,36 @@ const applyHighlights = (
   return changes
 }
 
-// const applyChangesToPeople = (
-//       changes: CellChange<TextCell>[],
-//       prevPeople: Person[]
-//   ): Person[] => {
-//       //for each person in array of people (each row)
-//       changes.forEach((change) => {
-//         const personIndex = change.rowId; //rowId where change occurred
-//         console.warn("person index: ",personIndex)
-//         const fieldName = change.columnId; //columnId where change occurred
-//         //@ts.ignore
-//         //prevPeople[personIndex][fieldName] = change.newCell.text;
-//         console.warn("row changing: ", change.rowId)
-//         console.warn("header row: ", headerRow)
-//   });
-//   return [...prevPeople];
-// };
-
-const applyChangesToPeople = (
+const applyChangesToData = (
   changes: CellChange<TextCell>[],
-  prevPeople: Person[]
-): Person[] => {
+  prevData: Data[]
+): Data[] => {
   changes.forEach((change) => {
-    const personIndex =  change.rowId as Number;
+    const index =  change.rowId as Number;
     const fieldName = change.columnId;
     // @ts-ignore 
-    prevPeople[personIndex][fieldName] = change.newCell.text;
+    prevData[index][fieldName] = change.newCell.text;
   });
-  return [...prevPeople];
+  return [...prevData];
 };
 
 export default function RGrid(): ReactElement {
-    const [people, setPeople] = useState<Person[]>(getPeople()); //[var, updateVarFunction] = useState(initital_state)
-    const rows = getRows(people);
+    const [data, setData] = useState<Data[]>(getData);
+    const rows = getDataRows(data);
 
-    //todo: how does Highlight[] work here?
     const [highlights, setHighlight] = useState<Highlight[]>(getHighlight())
     
-    // const columns = getColumns()
-    const [columns, setColumns] = useState<Column[]>(getColumns());
-    //removes previous ppl and adding changes, converting it to cell change object
+    const [columns, setColumns] = useState<Column[]>(getDataColumns());
+    
     const handleChanges = (changes: CellChange<TextCell>[]) => { 
-        setPeople((prevPeople) => applyChangesToPeople(changes, prevPeople));
+      setData((prevData) => applyChangesToData(changes, prevData));
     };
+
+    const [headers, setHeaderRow] = useState<Row>(headerRow);
 
     // const handleHighlights = (changes: Highlight[]) => {
     //     setHighlight((prevHighlight) => applyHighlights(changes, prevHighlight)) //only highlighting new cell for now and can go back and add functionality
     // }
-
-    // const rows = getRows(people, columns.map(c => c.columnId as ColumnId));
 
     const reorderArray = <T extends {}>(arr: T[], idxs: number[], to: number) => {
       const movedElements = arr.filter((_, idx) => idxs.includes(idx));
@@ -146,13 +125,13 @@ export default function RGrid(): ReactElement {
         setColumns(prevColumns => reorderArray(prevColumns, columnIdxs, to));
     }
 
-    const handleRowsReorder = (targetRowId: Id, rowIds: Id[]) => {
-        setPeople((prevPeople) => {
-            const to = people.findIndex(person => person.id === targetRowId);
-            const rowsIds = rowIds.map((id) => people.findIndex(person => person.id === id));
-            return reorderArray(prevPeople, rowsIds, to);
-        });
-    }
+    // const handleRowsReorder = (targetRowId: Id, rowIds: Id[]) => {
+    //     setData((prevPeople) => {
+    //         const to = people.findIndex(person => person.id === targetRowId);
+    //         const rowsIds = rowIds.map((id) => people.findIndex(person => person.id === id));
+    //         return reorderArray(prevPeople, rowsIds, to);
+    //     });
+    // }
   
     const handleContextMenu = (
       selectedRowIds: Id[],
@@ -168,7 +147,7 @@ export default function RGrid(): ReactElement {
         label: "Add highlight",
         handler: () => {
           const newHighlight: Highlight = {
-              columnId: "name", //selectedColIds[0],
+              columnId: "col1", //selectedColIds[0],
               rowId: 1, //selectedRowIds[0], 
               borderColor: "#00ff00"
           };
@@ -183,42 +162,38 @@ export default function RGrid(): ReactElement {
         }
       },
       {
+        //TODO : not working
         id: "removeRow",
         label: "Remove row",
         handler: () => {
-          setPeople(prevPeople => {
+          setData(prevData => {
             console.log("row ids in remove row",selectedRowIds)
-            return prevPeople.filter((_person, idx) => !selectedRowIds.includes(idx))
-          })
-        }
-      },
-      {
-        id: "addRow",
-        label: "Add row",
-        handler: () => {
-          setPeople(prevPeople => {
-            //todo: last row menu options don't have remove row and add row option
-            const newPerson: Person = {
-              id: prevPeople.length, //maybe + 1
-              name: '',
-              surname: ''
-            };
-            return [...prevPeople, newPerson]
+            return prevData.filter((_, idx) => !selectedRowIds.includes(idx))
           })
         }
       },
       {
         id: "addCol",
         label: "Add column",
+        handler: () => {console.log("add functionality to add column")}
+        // handler: () => {
+        //   const newCol: Data = {number: 24};
+        //   return [...Data, newCol]
+        //   }
+      },
+      {
+        id: "addRow",
+        label: "Add row",
         handler: () => {
-          setPeople(prevPeople => {
+          setData(prevData => {
             //todo: last row menu options don't have remove row and add row option
-            const newPerson: Person = {
-              id: prevPeople.length, //maybe + 1
-              name: '',
-              surname: ''
+            const newData: Data = {
+              id: prevData.length, //maybe + 1
+              col1: 'new row value',
+              col2: 'new row value',
+              col3: new Date(22),
             };
-            return [...prevPeople, newPerson]
+            return [...prevData, newData]
           })
         }
       }]
@@ -250,7 +225,7 @@ export default function RGrid(): ReactElement {
             onContextMenu={handleContextMenu} //causing remove child error too but functionality still works
             onColumnResized={handleColumnResize}
             onColumnsReordered={handleColumnsReorder}
-            onRowsReordered={handleRowsReorder}
+            //onRowsReordered={handleRowsReorder}
             enableFillHandle
             enableRangeSelection //todo: causing the child node error on mendix side after trying to select things
             enableRowSelection
