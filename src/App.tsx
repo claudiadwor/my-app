@@ -1,40 +1,20 @@
-// import { ReactElement, createElement, useState } from "react";
 import { ReactElement, createElement, useState } from "react";
-// import { ReactGrid, Column, Row, CellChange, TextCell, Id, MenuOption, SelectionMode } from "@silevis/reactgrid";
-import { ReactGrid, Column, Row, CellChange, TextCell, Id, MenuOption, SelectionMode, Highlight, CellLocation } from "@silevis/reactgrid";
+import { ReactGrid, Column, Row, CellChange, TextCell, Id, MenuOption, SelectionMode, Highlight, CellLocation, DefaultCellTypes } from "@silevis/reactgrid";
 import "@silevis/reactgrid/styles.css";
-//import { CellStyle } from '@silevis/reactgrid/reactgrid'; //do i need .d or .d.ts at all?
-
-//adding functionality to existing
-
-//import "./ui/RGrid.css";
-
-interface Person {
-    id: number;
-    name: string;
-    surname: string;
-}
 
 interface Data {
   id: number;
   col1: string;
   col2: string;
-  col3: Date;
+  col3: string;
 }
-  
-const getPeople = (): Person[] => [
-  { id: 1, name: "", surname: "" },
-  { id: 2, name: "", surname: "" },
-  { id: 3, name: "", surname: "" },
-  { id: 4, name: "", surname: "" }
-];
 
 const getData = (): Data[] => [
-  { id: 1, col1: "", col2: "", col3: new Date() },
-  { id: 2, col1: "", col2: "", col3: new Date() },
-  { id: 3, col1: "", col2: "", col3: new Date() },
-  { id: 4, col1: "", col2: "", col3: new Date() },
-  { id: 5, col1: "", col2: "", col3: new Date() },
+  { id: 1, col1: "", col2: "", col3: "" },
+  { id: 2, col1: "", col2: "", col3: "" },
+  { id: 3, col1: "", col2: "", col3: "" },
+  { id: 4, col1: "", col2: "", col3: "" },
+  { id: 5, col1: "", col2: "", col3: "" },
 ]
 
 const getHighlight = (): Highlight[] => [
@@ -44,9 +24,9 @@ const getHighlight = (): Highlight[] => [
   { columnId: "name", rowId: 3, borderColor: "transparent" },
 ]
 const getDataColumns = (): Column[] => [
-  { columnId: "col1", width: 150, resizable: true, reorderable: true },
-  { columnId: "col2", width: 150, resizable: true, reorderable: true },
-  { columnId: "col3", width: 150, resizable: true, reorderable: true }
+  { columnId: 0, width: 150, resizable: true, reorderable: true },
+  { columnId: 1, width: 150, resizable: true, reorderable: true },
+  { columnId: 2, width: 150, resizable: true, reorderable: true }
 ];
 
 // header defined here
@@ -68,7 +48,7 @@ const getDataRows = (data: Data[]): Row[] => [
     cells: [
       { type: "text", text: data.col1 },
       { type: "text", text: data.col2 },
-      { type: "date", text: data.col3 },
+      { type: "text", text: data.col3 },
     ]
   }))
 ];
@@ -80,6 +60,39 @@ const applyHighlights = (
   return changes
 }
 
+const applyChangesToRows = (
+  changes: CellChange[],
+  prevRows: Row[]
+): Row[] => {
+  const updatedRows = [...prevRows];
+
+  changes.forEach((change) => {
+    const rowId = change.rowId as number;
+    const colId = change.columnId as number;
+    const newCell = change.newCell
+
+    //console.log("change", change) 
+
+    const rowToUpdate = updatedRows.find((row) => row.rowId === rowId);
+    //console.log(rowToUpdate)
+
+    if (rowToUpdate) {
+      //might need later so keeping it
+      const cellToUpdate = rowToUpdate.cells[colId]
+
+      // console.log(cellToUpdate)
+      // console.log("updated rows: ",updatedRows)
+      // console.log("row being updated", rowToUpdate)
+      // console.log("cells in row", updatedRows[rowId].cells[colId])
+      
+      //@ts-ignore
+      updatedRows[rowId+1].cells[colId].text = newCell.text
+    }
+  });
+
+  return updatedRows;
+};
+
 const applyChangesToData = (
   changes: CellChange<TextCell>[],
   prevData: Data[]
@@ -87,22 +100,31 @@ const applyChangesToData = (
   changes.forEach((change) => {
     const index =  change.rowId as Number;
     const fieldName = change.columnId;
-    // @ts-ignore 
+    console.log("init prev data",prevData)
+    // @ts-ignore
     prevData[index][fieldName] = change.newCell.text;
+    console.log("new prevData",prevData)
+    console.log("apply changes")
+    console.log("row changing: ", change.rowId)
+    console.log("change:", change)
   });
   return [...prevData];
 };
 
 export default function RGrid(): ReactElement {
     const [data, setData] = useState<Data[]>(getData);
-    const rows = getDataRows(data);
+    
+    const [rows, setRows] = useState<Row[]>(getDataRows(data));
 
     const [highlights, setHighlight] = useState<Highlight[]>(getHighlight())
     
     const [columns, setColumns] = useState<Column[]>(getDataColumns());
     
     const handleChanges = (changes: CellChange<TextCell>[]) => { 
-      setData((prevData) => applyChangesToData(changes, prevData));
+      console.log("handle cahnges")
+      //setData((prevData) => applyChangesToData(changes, prevData));
+      // const newData = data[changes[rowId]]
+      setRows((prevRows) => applyChangesToRows(changes, prevRows));
     };
 
     const [headers, setHeaderRow] = useState<Row>(headerRow);
@@ -124,14 +146,6 @@ export default function RGrid(): ReactElement {
         const columnIdxs = columnIds.map((columnId) => columns.findIndex((c) => c.columnId === columnId));
         setColumns(prevColumns => reorderArray(prevColumns, columnIdxs, to));
     }
-
-    // const handleRowsReorder = (targetRowId: Id, rowIds: Id[]) => {
-    //     setData((prevPeople) => {
-    //         const to = people.findIndex(person => person.id === targetRowId);
-    //         const rowsIds = rowIds.map((id) => people.findIndex(person => person.id === id));
-    //         return reorderArray(prevPeople, rowsIds, to);
-    //     });
-    // }
   
     const handleContextMenu = (
       selectedRowIds: Id[],
@@ -147,7 +161,7 @@ export default function RGrid(): ReactElement {
         label: "Add highlight",
         handler: () => {
           const newHighlight: Highlight = {
-              columnId: "col1", //selectedColIds[0],
+              columnId: 0, //selectedColIds[0],
               rowId: 1, //selectedRowIds[0], 
               borderColor: "#00ff00"
           };
@@ -165,6 +179,7 @@ export default function RGrid(): ReactElement {
         //TODO : not working
         id: "removeRow",
         label: "Remove row",
+        //TODO: change to setRow
         handler: () => {
           setData(prevData => {
             console.log("row ids in remove row",selectedRowIds)
@@ -175,7 +190,36 @@ export default function RGrid(): ReactElement {
       {
         id: "addCol",
         label: "Add column",
-        handler: () => {console.log("add functionality to add column")}
+        handler: () => {
+          //TODO: add new cells where column is created / add empty data
+          setColumns(prevColumns => {
+            const newCol : Column = { columnId: "col4", width: 150, resizable: true, reorderable: true }
+            return [...prevColumns, newCol]
+          });
+          // setHeaderRow((prevHeaders) : Row => {
+          //   const newHeader = {
+          //     type: "header", text: "Col4"
+          //   };
+          //   const updatedHeaders = {
+          //     rowId: "header",
+          //     cells: [
+          //       ...prevHeaders.cells,
+          //       newHeader,
+          //     ]
+          //   };
+          //   // @ts-ignore
+          //   return updatedHeaders
+          //   const headerRow: Row = {
+          //     rowId: "header",
+          //     cells: [
+          //       { type: "header", text: "Col1" },
+          //       { type: "header", text: "Col2" },
+          //       { type: "header", text: "Col3" },
+          //       //{ type: "header", text: "Col4" }
+          //     ]
+          //   };
+          // })
+        }
         // handler: () => {
         //   const newCol: Data = {number: 24};
         //   return [...Data, newCol]
@@ -185,14 +229,17 @@ export default function RGrid(): ReactElement {
         id: "addRow",
         label: "Add row",
         handler: () => {
+          //TODO: change to setRow
           setData(prevData => {
             //todo: last row menu options don't have remove row and add row option
             const newData: Data = {
               id: prevData.length, //maybe + 1
               col1: 'new row value',
               col2: 'new row value',
-              col3: new Date(22),
+              col3: 'new row value',
             };
+            //setRows((prevRows) => applyChangesToRows(changes, prevRows))
+            // idk if this is necessary^
             return [...prevData, newData]
           })
         }
@@ -214,16 +261,34 @@ export default function RGrid(): ReactElement {
           return [...prevColumns];
         });
     }
+
+    const handleUpdateColumns: React.MouseEventHandler<HTMLButtonElement> = (event) => {
+      // Logic to update columns based on your requirements
+      const newCol = [{columnId : "col4"}]
+      //const updatedColumns: YourColumnType[] = /* Update columns here */;
+      setColumns(newCol);
+      console.log('clicked button')
+    };
+
+    // const handleUpdateColumns = (colNames: string, colTypes: DefaultCellTypes) => {
+    //   // Logic to update columns based on your requirements
+    //   const newCol = [{columnId : "col4"}]
+    //   //const updatedColumns = [newcol] : Column[]; /* Update columns here */
+    //   console.log("handleUpdateColButton")
+    //   setColumns(newCol);
+    // };
     
     //returned component
     return (
+      <div>
+        <button onClick={handleUpdateColumns}>Update Columns</button>
         <ReactGrid
             rows={rows} 
             columns={columns} 
             // @ts-ignore
             onCellsChanged={(changes) => handleChanges(changes)}
             onContextMenu={handleContextMenu} //causing remove child error too but functionality still works
-            onColumnResized={handleColumnResize}
+            //onColumnResized={handleColumnResize}
             onColumnsReordered={handleColumnsReorder}
             //onRowsReordered={handleRowsReorder}
             enableFillHandle
@@ -234,5 +299,6 @@ export default function RGrid(): ReactElement {
             highlights={highlights} //todo: make highlight an option in context menu that you can choose color for
             //onHighlightsChanged={handleHighlights}
         />
+      </div>
     );
 }
