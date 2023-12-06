@@ -93,25 +93,8 @@ const applyChangesToRows = (
   return updatedRows;
 };
 
-const applyChangesToData = (
-  changes: CellChange<TextCell>[],
-  prevData: Data[]
-): Data[] => {
-  changes.forEach((change) => {
-    const index =  change.rowId as Number;
-    const fieldName = change.columnId;
-    console.log("init prev data",prevData)
-    // @ts-ignore
-    prevData[index][fieldName] = change.newCell.text;
-    console.log("new prevData",prevData)
-    console.log("apply changes")
-    console.log("row changing: ", change.rowId)
-    console.log("change:", change)
-  });
-  return [...prevData];
-};
-
 export default function RGrid(): ReactElement {
+    //Data interface only used for initially setting empty data for grid
     const [data, setData] = useState<Data[]>(getData);
     
     const [rows, setRows] = useState<Row[]>(getDataRows(data));
@@ -122,8 +105,6 @@ export default function RGrid(): ReactElement {
     
     const handleChanges = (changes: CellChange<TextCell>[]) => { 
       console.log("handle cahnges")
-      //setData((prevData) => applyChangesToData(changes, prevData));
-      // const newData = data[changes[rowId]]
       setRows((prevRows) => applyChangesToRows(changes, prevRows));
     };
 
@@ -176,14 +157,40 @@ export default function RGrid(): ReactElement {
         }
       },
       {
-        //TODO : not working
+        id: "addRow",
+        label: "Add row",
+        handler: () => {
+          //TODO: change to setRow
+          setRows(prevRows => {
+            //todo: last row menu options don't have remove row and add row option
+            const newRowId = prevRows.length
+            const numCols = prevRows[0].cells.length
+            const newCells = Array.from({ length: numCols }, () => ({type : "text", text: ""}));
+            //console.log("newCells:", newCells)
+            const newRow: Row = {
+              rowId: newRowId,
+              //@ts-ignore
+              cells: newCells,
+            };
+            return [...prevRows, newRow]
+          })
+        }
+      },
+      {
         id: "removeRow",
         label: "Remove row",
-        //TODO: change to setRow
+        //TODO: not updating something with the rows bc when i remove and then edit, it edits cell below it
         handler: () => {
-          setData(prevData => {
+          setRows(prevRows => {
             console.log("row ids in remove row",selectedRowIds)
-            return prevData.filter((_, idx) => !selectedRowIds.includes(idx))
+            prevRows = prevRows.filter((_, idx) => {
+              console.log("prevRows",prevRows)
+              // console.log("idx",idx)
+              // console.log("selectedRowIds",selectedRowIds)
+              return !selectedRowIds.includes(idx)
+            })
+            console.log("filtered prev rows:", prevRows)
+            return prevRows
           })
         }
       },
@@ -192,58 +199,63 @@ export default function RGrid(): ReactElement {
         label: "Add column",
         handler: () => {
           //TODO: add new cells where column is created / add empty data
+          
           setColumns(prevColumns => {
-            const newCol : Column = { columnId: "col4", width: 150, resizable: true, reorderable: true }
+            console.log(prevColumns)
+            const newCol : Column = { columnId: 3, width: 150, resizable: true, reorderable: true };
+            console.log(newCol)
             return [...prevColumns, newCol]
           });
-          // setHeaderRow((prevHeaders) : Row => {
-          //   const newHeader = {
-          //     type: "header", text: "Col4"
-          //   };
-          //   const updatedHeaders = {
-          //     rowId: "header",
-          //     cells: [
-          //       ...prevHeaders.cells,
-          //       newHeader,
-          //     ]
-          //   };
-          //   // @ts-ignore
-          //   return updatedHeaders
-          //   const headerRow: Row = {
-          //     rowId: "header",
-          //     cells: [
-          //       { type: "header", text: "Col1" },
-          //       { type: "header", text: "Col2" },
-          //       { type: "header", text: "Col3" },
-          //       //{ type: "header", text: "Col4" }
-          //     ]
-          //   };
-          // })
-        }
-        // handler: () => {
-        //   const newCol: Data = {number: 24};
-        //   return [...Data, newCol]
-        //   }
-      },
-      {
-        id: "addRow",
-        label: "Add row",
-        handler: () => {
-          //TODO: change to setRow
-          setData(prevData => {
-            //todo: last row menu options don't have remove row and add row option
-            const newData: Data = {
-              id: prevData.length, //maybe + 1
-              col1: 'new row value',
-              col2: 'new row value',
-              col3: 'new row value',
+          setHeaderRow((prevHeaders) : Row => {
+            const newHeader = {
+              type: "header", text: "Col4"
             };
-            //setRows((prevRows) => applyChangesToRows(changes, prevRows))
-            // idk if this is necessary^
-            return [...prevData, newData]
-          })
+            const updatedHeaders = {
+              rowId: "header",
+              cells: [
+                ...prevHeaders.cells,
+                newHeader,
+              ]
+            };
+            //@ts-ignore
+            return updatedHeaders
+          });
+          //TODO: left off here trying to add to cells in each row. looks like it's working but the cells aren't showing up and im getting an error
+          setRows((prevRows) : Row[] => {
+            const prevHeaders = prevRows[0]
+            const newHeader = {
+              type: "header", text: "Col4"
+            };
+            const updatedHeaders  = {
+              rowId: "header",
+              cells: [
+                ...prevHeaders.cells,
+                newHeader,
+              ]
+            };
+            const prevRowsNew = prevRows.slice(1); //removing header row
+            console.log("before updatedRows.map")
+            const newCell : TextCell = {type: "text", text: "new"};
+            const updatedRows = prevRowsNew.map((prevRow) => ({
+              ...prevRow,
+              cells: [...prevRow.cells, newCell],
+            }));
+            const newUpdatedHeaders = [updatedHeaders]
+            console.log("prev rows",prevRows)
+            console.log("updated rows",updatedRows)
+            console.log("type of updated rows",typeof(updatedRows))
+            console.log("updatedHeaders:", updatedHeaders)
+            //@ts-ignore
+            console.log("all updated cols + headers", newUpdatedHeaders.concat(updatedRows))
+            //@ts-ignore
+            return newUpdatedHeaders.concat(updatedRows)
+          });
+          // setRows((prevRows) : Row => {
+          //   prevRows
+          // }) 
         }
-      }]
+      },
+    ]
       return menuOptions;
     }
 
