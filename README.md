@@ -1,3 +1,21 @@
+## Spreadsheet using ReactGrid Library
+
+# Why?
+
+Future use as a pluggable widget in developing in Mendix front end. Example usage with Mendix integration with customized functionality found in this repo, ODSC mendix-components: https://dev.azure.com/ORTEC-DataScience/ORTEC%20-%20Houston%20-%20Internal%20Initiatives/_git/mendix-components 
+
+# What you need
+npm install @silevis/reactgrid
+
+Docs for this library walk you through some of the built in functionality (that I have changed, it's buggy)
+Link to library docs: https://reactgrid.com/docs/4.0/1-getting-started/ 
+
+# Current issues
+Comments in code show issues I didn't have time to resolve.
+
+
+### General React App README
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

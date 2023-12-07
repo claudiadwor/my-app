@@ -198,8 +198,7 @@ export default function RGrid(): ReactElement {
         id: "addCol",
         label: "Add column",
         handler: () => {
-          //TODO: add new cells where column is created / add empty data
-          
+          //TODO: when i add a column, the added ones are all grouped together and i can't edit the cells or it errors
           setColumns(prevColumns => {
             console.log(prevColumns)
             const newCol : Column = { columnId: 3, width: 150, resizable: true, reorderable: true };
@@ -220,7 +219,6 @@ export default function RGrid(): ReactElement {
             //@ts-ignore
             return updatedHeaders
           });
-          //TODO: left off here trying to add to cells in each row. looks like it's working but the cells aren't showing up and im getting an error
           setRows((prevRows) : Row[] => {
             const prevHeaders = prevRows[0]
             const newHeader = {
