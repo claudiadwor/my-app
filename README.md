@@ -11,7 +11,7 @@ Docs for this library walk you through some of the built in functionality (that 
 Link to library docs: https://reactgrid.com/docs/4.0/1-getting-started/ 
 
 # Current issues
-Comments in code show issues I didn't have time to resolve.
+Comments in code show issues I didn't have time to resolve. A lot of commented out code is left here because it can be added back piece by piece checking for errors.
 
 
 ### General React App README
