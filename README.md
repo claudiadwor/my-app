@@ -10,9 +10,11 @@ npm install @silevis/reactgrid
 Docs for this library walk you through some of the built in functionality (that I have changed, it's buggy)
 Link to library docs: https://reactgrid.com/docs/4.0/1-getting-started/ 
 
-# Current issues
-Comments in code show issues I didn't have time to resolve. A lot of commented out code is left here because it can be added back piece by piece checking for errors.
+# Current state and issues
 
+Currently working with some bugs. Bugs' locations that I know of are commented on in code. Right now, you can edit data, cut, copy, paste, add rows. Deleting rows and adding columns have some issues. 
+
+Comments in code show issues I didn't have time to resolve, important one's tagged with TODO. A lot of commented out code is left here because it can be added back piece by piece checking for errors.
 
 ### General React App README
 

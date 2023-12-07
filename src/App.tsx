@@ -160,7 +160,6 @@ export default function RGrid(): ReactElement {
         id: "addRow",
         label: "Add row",
         handler: () => {
-          //TODO: change to setRow
           setRows(prevRows => {
             //todo: last row menu options don't have remove row and add row option
             const newRowId = prevRows.length
